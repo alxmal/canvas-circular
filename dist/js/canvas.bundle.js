@@ -33,9 +33,6 @@
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
 /******/
-/******/ 	// identity function for calling harmony imports with the correct context
-/******/ 	__webpack_require__.i = function(value) { return value; };
-/******/
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
@@ -86,7 +83,7 @@ var mouse = {
 	y: innerHeight / 2
 };
 
-var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66'];
+var colors = ['#badd55', '#7ECEFD', '#FF7F66'];
 
 // Event Listeners
 addEventListener('mousemove', function (event) {
@@ -110,16 +107,43 @@ function randomColor(colors) {
 	return colors[Math.floor(Math.random() * colors.length)];
 }
 
+function distance(x1, y1, x2, y2) {
+	var xDist = x2 - x1;
+	var yDist = y2 - y1;
+
+	return Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
+}
+
 // Objects
-function Object(x, y, radius, color) {
+function Particle(x, y, radius, color) {
 	var _this = this;
 
 	this.x = x;
 	this.y = y;
 	this.radius = radius;
 	this.color = color;
+	this.radians = Math.random() * Math.PI * 2;
+	this.velocity = 0.05;
+
+	// Random x and y motion trails of particles
+	// Sort of 3d motion effect
+	this.distanceFromCenter = {
+		x: randomIntFromRange(50, 90),
+		y: randomIntFromRange(40, 80)
+	};
+	this.lastMouse = { x: x, y: y };
 
 	this.update = function () {
+		// Move particles over time
+		_this.radians += _this.velocity;
+
+		// Drag effect
+		_this.lastMouse.x += (mouse.x - _this.lastMouse.x) * 0.05;
+		_this.lastMouse.y += (mouse.y - _this.lastMouse.y) * 0.05;
+
+		// Circular motion
+		_this.x = _this.lastMouse.x + Math.cos(_this.radians) * _this.distanceFromCenter.x;
+		_this.y = _this.lastMouse.y + Math.sin(_this.radians) * _this.distanceFromCenter.y;
 		_this.draw();
 	};
 
@@ -133,24 +157,26 @@ function Object(x, y, radius, color) {
 }
 
 // Implementation
-var objects = void 0;
+var particles = void 0;
 function init() {
-	objects = [];
+	particles = [];
 
-	for (var i = 0; i < 400; i++) {
-		// objects.push();
+	for (var i = 0; i < 50; i++) {
+		var radius = Math.random() * 5 + 3;
+		particles.push(new Particle(canvas.width / 2, canvas.height / 2, radius, randomColor(colors)));
 	}
+	console.log(particles);
 }
 
 // Animation Loop
 function animate() {
 	requestAnimationFrame(animate);
-	c.clearRect(0, 0, canvas.width, canvas.height);
+	c.fillStyle = 'rgba(255, 255, 255, 1)';
+	c.fillRect(0, 0, canvas.width, canvas.height);
 
-	c.fillText('HTML CANVAS BOILERPLATE', mouse.x, mouse.y);
-	// objects.forEach(object => {
-	// 	object.update();
-	// });
+	particles.forEach(function (particle) {
+		particle.update();
+	});
 }
 
 init();
